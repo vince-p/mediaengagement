@@ -1,0 +1,290 @@
+Name,QuestionText
+ResponseID,ResponseID
+Finished,Finished
+Status,Status
+source,source
+Condition,Condition
+Q1.1,Welcome to a study on Sense of Agency & Media   Thank you for participating.    The study is bein...
+demo_1,What is your age range?
+demo_2,What is your gender?
+demo_3,What is your highest level of completed education?
+demo_4,What country do you live in?
+demo_5,What is your approximate household income in US Dollars?
+TAS_1,The following questions ask about experiences that you may have had in your life. We are interest...
+TAS_2,I can be greatly moved by eloquent or poetic language.
+TAS_3,"While watching a movie, a T.V. show, or a play, I may become so involved that I forget about myse..."
+TAS_4,"If I stare at a picture and then look away from it, I can sometimes ""see"" an image of the picture..."
+TAS_5,Sometimes I feel as if my mind could envelop the whole world.
+TAS_6,I like to watch cloud shapes change in the sky.
+TAS_7,If I wish I can imagine some things so vividly that it's like watching a good movie or hearing a...
+TAS_8,I think I really know what some people mean when they talk about mystical experiences.
+TAS_9,"I sometimes ""step outside"" my usual self and experience a completely different state of being."
+TAS_10,Textures such as wool or sand sometimes remind me of colors or music.
+TAS_11,Sometimes I experience things as if they were doubly real.
+TAS_12,When I listen to music I can get so caught up in it that I don't notice anything else.
+TAS_13,If I wish I can imagine that my body is so heavy that I cannot move it.
+TAS_14,I can often somehow sense the presence of another person before I actually see or hear her/him.
+TAS_15,The crackle and flames of a wood fire stimulate my imagination.
+TAS_16,Sometimes I am so immersed in nature or in art that I feel as if my whole state of consciousness...
+TAS_17,Different colors have distinctive and special meanings for me.
+TAS_18,I can wander off into my thoughts so completely while doing a routine task that I actually forget...
+TAS_19,I can sometimes recall certain past experiences so clearly and vividly that it is like living the...
+TAS_20,Things that might seem meaningless to others often make sense to me.
+TAS_21,"If I acted in a play I think I would really feel the emotions of the character and ""become"" that..."
+TAS_22,My thoughts often occur as visual images rather than as words.
+TAS_23,I am often delighted by small things (like the colors in soap bubbles and the fivepointed star sh...
+TAS_24,"When listening to organ music or other powerful music, I sometimes feel as if I am being lifted i..."
+TAS_25,Sometimes I can change noise into music by the way I listen to it.
+TAS_26,Some of my most vivid memories are called up by scents and smells.
+TAS_27,Some music reminds me of pictures or changing patterns of color.
+TAS_28,I often know what someone is going to say before he or she says it.
+TAS_29,"I often have ""physical memories""; for example, after I've been swimming I may feel as if I'm stil..."
+TAS_30,The sound of a voice can be so fascinating to me that I can just go on listening to it.
+TAS_31,At times I somehow feel the presence of someone who is not physically there.
+TAS_32,Sometimes thoughts and images come to me without any effort on my part.
+TAS_33,I find that different smells have different colors.
+TAS_34,I can be deeply moved by a sunset.
+M5_1,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I have a vivid imagination"
+M5_2,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I believe in the importance of art"
+M5_3,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I seldom feel blue"
+M5_4,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I have a sharp tongue"
+M5_5,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I am not interested in abstract ideas"
+M5_6,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I find it difficult to get down to work"
+M5_7,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I panic easily"
+M5_8,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I tend to vote for left wing political candidates"
+M5_9,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I am not easily bothered by things"
+M5_10,"Without spending too much time dwelling on any one item, just give the first reaction that comes...-I make friends easily"
+M5_11, -I often feel blue
+M5_12, -I get chores done right away
+M5_13, -I suspect hidden motives in others
+M5_14, -I rarely get irritated
+M5_15, -I do not like art
+M5_16, -I dislike myself
+M5_17, -I keep in the background
+M5_18, -I do just enough work to get by
+M5_19, -I am always prepared
+M5_20, -I tend to vote for right wing political candidates
+M5_21, -I feel comfortable with myself
+M5_22, -I avoid philosophical discussions
+M5_23, -I waste my time
+M5_24, -I believe that others have good intentions
+M5_25, -I am very pleased with myself
+M5_26, -I have little to say
+M5_27, -I feel comfortable around other people
+M5_28, -I am often down in the dumps
+M5_29, -I do not enjoy going to art museums
+M5_30, -I have frequent mood swings
+M5_31, -I don't like to draw attention to myself
+M5_32, -I insult people
+M5_33, -I have a good word for everyone
+M5_34, -I get back at others
+M5_35, -I carry out my plans
+M5_36, -I would describe my experiences as somewhat dull
+M5_37, -I carry the conversation to a higher level
+M5_38, -I don't see things through
+M5_39, -I am skilled in handling social situations
+M5_40, -I respect others
+M5_41, -I pay attention to details
+M5_42, -I am the life of the party
+M5_43, -I enjoy hearing new ideas
+M5_44, -I accept people as they are
+M5_45, -I don't talk a lot
+M5_46, -I cut others to pieces
+M5_47, -I make plans and stick to them
+M5_48, -I know how to captivate people
+M5_49, -I make people feel at ease
+M5_50, -I shirk my duties
+Time_1,Please rate your experience of time in the following statements:-How fast does time usually pass for you?
+Time_2,Please rate your experience of time in the following statements:-How fast does time usually pass for you when playing video games?
+Time_3,Please rate your experience of time in the following statements:-How fast does time usually pass for you when watching movies or TV shows?
+GamesGeneral_1,    THE NEXT SECTION ASKS QUESTIONS SPECIFICALLY ABOUT YOUR EXPERIENCE PLAYING VIDEO GAMES.
+GamesGeneral_2,Think of a specific video game you enjoy playing and that you have played recently. What is that...
+GamesGeneral_3,What genre is this game?
+GamesGeneral_4,Please briefly describe the plot of this game
+GamesGeneral_5," On average, on how many days would you play this game each week? -&nbsp;"
+GamesGeneral_6,How many hours a week do you spend playing this game?-&nbsp;
+GamesGeneral_7,Do you usually play this on a-Mobile
+GamesGeneral_8,Do you usually play this on a-Tablet
+GamesGeneral_9,Do you usually play this on a-Laptop
+GamesGeneral_10,Do you usually play this on a-TV
+GamesGeneral_11,Do you usually play this on a-Projector
+GamesGeneral_12,Do you usually play this on a-Desktop Computer
+GamesGeneral_13,Do you play video games...-Alone
+GamesGeneral_14,Do you play video games...-With other players or observers physically in the same room
+GamesGeneral_15,"Do you play video games...-Connected virtually to others (e.g., online multiplayer games)"
+GamesGeneral_16,Please describe your favourite main character in this game
+GamesGeneral_17,Do you feel like this character is more good or bad?
+GamesGeneral_18,What is this character required to do in this game?
+GamesGeneral_19,Please rate how much you agree/disagree with the following statements:-The main character acts similarly to me.
+GamesGeneral_20,Please rate how much you agree/disagree with the following statements:-The main character looks like me.
+GamesGeneral_21,"Please rate how much you agree/disagree with the following statements:-When I’m playing the game, I feel I am the character."
+GamesGeneral_22,"Please rate how much you agree/disagree with the following statements:-When I am playing, it feels as if the character’s body becomes my own."
+GamesGeneral_23,Please rate how much you agree/disagree with the following statements:-If I could become like the character I would.
+GamesDFS_1,For the next set of questions please think about your experience when you play video games. You m...
+GamesDFS_2,I do things spontaneously and automatically without having to think
+GamesDFS_3,I have a strong sense of what I want to do 
+GamesDFS_4,I have a good idea about how well I am doing while I am involved in each task/activity 
+GamesDFS_5,I am completely focused on the task at hand 
+GamesDFS_6, I have a feeling of total control over what I am doing 
+GamesDFS_7,  I am not worried about what others may be thinking of me 
+GamesDFS_8,   The way time passes seems to be different from normal 
+GamesDFS_9,Experiences are extremely rewarding
+GamesSOARS_1,"In this section we are interested in your inner, subjective experiences while playing video games...-Doing what I was meant to was hard"
+GamesSOARS_2,"In this section we are interested in your inner, subjective experiences while playing video games...-I chose how to respond"
+GamesSOARS_3,"In this section we are interested in your inner, subjective experiences while playing video games...-My experiences and actions felt self generated"
+GamesSOARS_4,"In this section we are interested in your inner, subjective experiences while playing video games...-I went along with my experiences freely"
+GamesSOARS_5,"In this section we are interested in your inner, subjective experiences while playing video games...-My experiences and actions were under my control"
+GamesSOARS_6,"In this section we are interested in your inner, subjective experiences while playing video games...-I felt that my experiences and actions were not caused by me"
+GamesSOARS_7,"In this section we are interested in your inner, subjective experiences while playing video games...-My experiences and actions occurred effortlessly"
+GamesSOARS_8,"In this section we are interested in your inner, subjective experiences while playing video games...-I was mostly absorbed in what was going on"
+GamesSOARS_9,"In this section we are interested in your inner, subjective experiences while playing video games...-My responses were involuntarily"
+GamesSOARS_10,"In this section we are interested in your inner, subjective experiences while playing video games...-I was reluctant to go along with my experiences"
+GamesPresence_1,Think of your experience Timewhen you last played a video game that you enjoyed.
+GamesPresence_2,To what extent did you have a sense of being in a virtual environment? -Not at all:Very much so
+GamesPresence_3,To what extent were there times during the experience when the virtual environment became ‘realit...-Never:Almost all the time
+GamesPresence_4,"When you think back to your experience, do you think of the virtual environment more as images th...-Only as images that I saw:Somewhere that I visited"
+GamesITC_1,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I felt sad that my experience was over
+GamesITC_2,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I felt disorientated
+GamesITC_3,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I had a sense that I had returned from a journey
+GamesITC_4,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I would have liked the experience to continue
+GamesITC_5,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I vividly remember some parts of the experience
+GamesITC_6,Please think of your experience when you last played a game that you enjoyed and answer the follo...-I’d recommend the experience to my friends.
+GamesITC_7,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt myself being ‘drawn in’
+GamesITC_8,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt involved (in the displayed environment)
+GamesITC_9,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I lost track of time
+GamesITC_10,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I could interact with the displayed environment
+GamesITC_11,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The displayed environment seemed natural
+GamesITC_12,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-It felt like the content was ‘live’
+GamesITC_13,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that the characters and/or objects could almost touch me
+GamesITC_14,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I enjoyed myself
+GamesITC_15,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I was visiting the places in the displayed environment
+GamesITC_16,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt tired
+GamesITC_17,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The content seemed believable to me
+GamesITC_18,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I wasn’t just watching something
+GamesITC_19,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that I moved in response to parts of the displayed environment
+GamesITC_20,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt dizzy
+GamesITC_21,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that the displayed environment was part of the real world
+GamesITC_22,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-My experience was intense
+GamesITC_23,"  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I paid more attention to the displayed environment than I did to my own thoughts (e.g., personal preoccupations, daydreams etc.)"
+GamesITC_24,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a sense of being in the scenes displayed
+GamesITC_25,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that I could move objects (in the displayed environment)
+GamesITC_26,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The scenes depicted could really occur in the real world
+GamesITC_27,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I had eyestrain
+GamesITC_28,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I could almost smell different features of the displayed environment
+GamesITC_29,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that the characters were aware of me
+GamesITC_30,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a strong sense of sounds coming from different directions within the displayed environment
+GamesITC_31,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt surrounded by the displayed environment
+GamesITC_32,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt nauseous
+GamesITC_33,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a strong sense that the characters and objects were solid
+GamesITC_34,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I could have reached out and touched things (in the displayed environment)
+GamesITC_35,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I sensed that the temperature changed to match the scenes in the displayed environment
+GamesITC_36,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I responded emotionally
+GamesITC_37,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that all my senses were stimulated at the same time
+GamesITC_38,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The content appealed to me
+GamesITC_39,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt able to change the course of events in the displayed environment
+GamesITC_40,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt as though I was in the same space as the characters and/or objects
+GamesITC_41,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that parts of the displayed environment (e.g. characters or objects) were responding to me
+GamesITC_42,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-It felt realistic to move things in the displayed environment
+GamesITC_43,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I had a headache
+GamesITC_44,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt as though I was participating in the displayed environment
+MoviesGeneral_1,    THE NEXT SECTION ASKS QUESTIONS SPECIFICALLY ABOUT YOUR EXPERIENCE WATCHING MOVIES OR TV.
+MoviesGeneral_2,Think of a specific movie or TV show that you enjoy watching and that you have watched recently....
+MoviesGeneral_3,What genre is this movie or show?
+MoviesGeneral_4,Please briefly describe the plot of this movie or show
+MoviesGeneral_5," On average, on how many days would you watch this movie or show each week? -&nbsp;"
+MoviesGeneral_6,How many hours a week do you spend watching this movie or show?-&nbsp;
+MoviesGeneral_7,Do you usually watch this on a-Mobile
+MoviesGeneral_8,Do you usually watch this on a-Tablet
+MoviesGeneral_9,Do you usually watch this on a-Laptop
+MoviesGeneral_10,Do you usually watch this on a-TV
+MoviesGeneral_11,Do you usually watch this on a-Projector
+MoviesGeneral_12,Do you usually watch this on a-Desktop Computer
+MoviesGeneral_13,Do you watch movies or TV shows ...-Alone
+MoviesGeneral_14,Do you watch movies or TV shows ...-With others physically in the same room
+MoviesGeneral_15,"Do you watch movies or TV shows ...-Connected virtually to others (e.g., chatting online about what you are watching with other viewers)"
+MoviesGeneral_16,Please describe your favourite main character in this movie or show
+MoviesGeneral_17,Do you feel like this character is more good or bad?
+MoviesGeneral_18,What is this character required to do in this movie or show?
+MoviesGeneral_19,Please rate how much you agree/disagree with the following statements:-The main character acts similarly to me.
+MoviesGeneral_20,Please rate how much you agree/disagree with the following statements:-The main character looks like me.
+MoviesGeneral_21,"Please rate how much you agree/disagree with the following statements:-When I’m watching this movie or show, I feel I am the character."
+MoviesGeneral_22,"Please rate how much you agree/disagree with the following statements:-When I am watching, it feels as if the character’s body becomes my own."
+MoviesGeneral_23,Please rate how much you agree/disagree with the following statements:-If I could become like the character I would.
+MoviesDFS_1,For the next set of questions please think about your experience when you watch movies or TV. You...
+MoviesDFS_2,I do things spontaneously and automatically without having to think
+MoviesDFS_3,I have a strong sense of what I want to do 
+MoviesDFS_4,I have a good idea about how well I am doing while I am involved in each task/activity 
+MoviesDFS_5,I am completely focused on the task at hand 
+MoviesDFS_6, I have a feeling of total control over what I am doing 
+MoviesDFS_7,  I am not worried about what others may be thinking of me 
+MoviesDFS_8,   The way time passes seems to be different from normal 
+MoviesDFS_9,Experiences are extremely rewarding
+MoviesSOARS_1,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-Doing what I was meant to was hard"
+MoviesSOARS_2,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-I chose how to respond"
+MoviesSOARS_3,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-My experiences and actions felt self generated"
+MoviesSOARS_4,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-I went along with my experiences freely"
+MoviesSOARS_5,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-My experiences and actions were under my control"
+MoviesSOARS_6,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-I felt that my experiences and actions were not caused by me"
+MoviesSOARS_7,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-My experiences and actions occurred effortlessly"
+MoviesSOARS_8,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-I was mostly absorbed in what was going on"
+MoviesSOARS_9,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-My responses were involuntarily"
+MoviesSOARS_10,"In this section we are interested in your inner, subjective experiences watching movies or TV.  P...-I was reluctant to go along with my experiences"
+MoviesPresence_1,Think of your experience when you last watched a movie or TV show that you enjoyed.
+MoviesPresence_2,To what extent did you have a sense of being in a virtual environment? -Not at all:Very much so
+MoviesPresence_3,To what extent were there times during the experience when the virtual environment became ‘realit...-Never:Almost all the time
+MoviesPresence_4,"When you think back to your experience, do you think of the virtual environment more as images th...-Only as images that I saw:Somewhere that I visited"
+MoviesITC_1,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I felt sad that my experience was over
+MoviesITC_2,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I felt disorientated
+MoviesITC_3,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I had a sense that I had returned from a journey
+MoviesITC_4,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I would have liked the experience to continue
+MoviesITC_5,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I vividly remember some parts of the experience
+MoviesITC_6,Please think of your experience when you last watched a movie or TV show that you enjoyed and ans...-I’d recommend the experience to my friends.
+MoviesITC_7,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt myself being ‘drawn in’
+MoviesITC_8,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt involved (in the displayed environment)
+MoviesITC_9,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I lost track of time
+MoviesITC_10,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I could interact with the displayed environment
+MoviesITC_11,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The displayed environment seemed natural
+MoviesITC_12,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-It felt like the content was ‘live’
+MoviesITC_13,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that the characters and/or objects could almost touch me
+MoviesITC_14,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I enjoyed myself
+MoviesITC_15,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I was visiting the places in the displayed environment
+MoviesITC_16,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt tired
+MoviesITC_17,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The content seemed believable to me
+MoviesITC_18,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I wasn’t just watching something
+MoviesITC_19,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that I moved in response to parts of the displayed environment
+MoviesITC_20,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt dizzy
+MoviesITC_21,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that the displayed environment was part of the real world
+MoviesITC_22,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-My experience was intense
+MoviesITC_23,"  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I paid more attention to the displayed environment than I did to my own thoughts (e.g., personal preoccupations, daydreams etc.)"
+MoviesITC_24,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a sense of being in the scenes displayed
+MoviesITC_25,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that I could move objects (in the displayed environment)
+MoviesITC_26,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The scenes depicted could really occur in the real world
+MoviesITC_27,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I had eyestrain
+MoviesITC_28,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I could almost smell different features of the displayed environment
+MoviesITC_29,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that the characters were aware of me
+MoviesITC_30,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a strong sense of sounds coming from different directions within the displayed environment
+MoviesITC_31,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt surrounded by the displayed environment
+MoviesITC_32,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt nauseous
+MoviesITC_33,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had a strong sense that the characters and objects were solid
+MoviesITC_34,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I could have reached out and touched things (in the displayed environment)
+MoviesITC_35,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I sensed that the temperature changed to match the scenes in the displayed environment
+MoviesITC_36,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I responded emotionally
+MoviesITC_37,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt that all my senses were stimulated at the same time
+MoviesITC_38,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-The content appealed to me
+MoviesITC_39,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt able to change the course of events in the displayed environment
+MoviesITC_40,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt as though I was in the same space as the characters and/or objects
+MoviesITC_41,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I had the sensation that parts of the displayed environment (e.g. characters or objects) were responding to me
+MoviesITC_42,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-It felt realistic to move things in the displayed environment
+MoviesITC_43,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt I had a headache
+MoviesITC_44,  DURING MY EXPERIENCE OF THE DISPLAYED ENVIRONMENT...-I felt as though I was participating in the displayed environment
+Q114,"If you would like to enter the draw for a $50 Steam credit voucher, please enter your email here"
+Q115,For more online psychology studies visit http://www.onlinepsychresearch.co.uk For another place t...
+RO-BR-FL_21,Display Order: Block Randomizer FL_21
+RO-BR-FL_24,Display Order: Block Randomizer FL_24
+RO-BR-FL_30,Display Order: Block Randomizer FL_30
+RO-BR-FL_23,Display Order: Block Randomizer FL_23
+RO-BR-FL_42,Display Order: Block Randomizer FL_42
+RO-BR-FL_36,Display Order: Block Randomizer FL_36
+LocationLatitude,LocationLatitude
+LocationLongitude,LocationLongitude
+LocationAccuracy,LocationAccuracy
