@@ -1,6 +1,6 @@
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-p_load(tidyverse,psych,multtest,lsr)
+p_load(tidyverse,psych,multtest)
 p_load_gh("vince-p/vtools")
 
 alldata<-read_csv("cleandata/alldata.csv")
@@ -17,21 +17,24 @@ subscales<-sum((startsWith(names(totals),"Games"))) #Calculate # of distinct sub
 #
 #
 #TIME PLAYED
-d<-describe(select(alldata,GamesGeneral_5,GamesGeneral_6,MoviesGeneral_5,MoviesGeneral_6))
+d<-psych::describe(select(alldata,GamesGeneral_5,GamesGeneral_6,MoviesGeneral_5,MoviesGeneral_6))
 out.time<-tibble(var=c("Games","Movies"),
-            days=c(r(d[1,]$mean),r(d[3,]$mean)),
-            sd_days=c(r(d[1,]$sd),r(d[3,]$sd)),
-            min_days=c(d[1,]$min,d[3,]$min),
-            max_days=c(d[1,]$max,d[3,]$max),
-            hours=c(r(d[2,]$mean),r(d[4,]$mean)),
-            sd_hours=c(r(d[2,]$sd),r(d[4,]$sd)),
-            min_hours=c(d[2,]$min,d[4,]$min),
-            max_hours=c(d[2,]$max,d[4,]$max))
-
+            days=c(r(d$mean[1]),r(d$mean[3])),
+            sd_days=c(r(d$sd[1]),r(d$sd[3])),
+            min_days=c(d$min[1],d$min[3]),
+            max_days=c(d$max[1],d$max[3]),
+            hours=c(r(d$mean[2]),r(d$mean[4])),
+            sd_hours=c(r(d$sd[2]),r(d$sd[4])),
+            min_hours=c(d$min[2],d$min[4]),
+            max_hours=c(d$max[2],d$max[4]))
+# t test days
+v.test(x=alldata$GamesGeneral_5,y=alldata$MoviesGeneral_5)
+# t test hours
+v.test(x=alldata$GamesGeneral_6,y=alldata$MoviesGeneral_6)
 
 #####################
-GENRE
-out.genre<-select(alldata,ResponseID,Game=GamesGeneral_2,Genre=GamesGeneral_3,Plot=GamesGeneral_4,FavCharacter=GamesGeneral_16, CharGoodBad=GamesGeneral_17, CharMission=GamesGeneral_18,Movie=MoviesGeneral_2,Genre=MoviesGeneral_3,Plot=MoviesGeneral_4,FavCharacter=MoviesGeneral_16, CharGoodBad=MoviesGeneral_17, CharMission=MoviesGeneral_18)
+#GENRE
+out.genre<-select(alldata,ResponseId,Game=GamesGeneral_2,Genre=GamesGeneral_3,Plot=GamesGeneral_4,FavCharacter=GamesGeneral_16, CharGoodBad=GamesGeneral_17, CharMission=GamesGeneral_18,Movie=MoviesGeneral_2,Genre=MoviesGeneral_3,Plot=MoviesGeneral_4,FavCharacter=MoviesGeneral_16, CharGoodBad=MoviesGeneral_17, CharMission=MoviesGeneral_18)
 #can write this to a CSV
 
 #######################
@@ -65,7 +68,7 @@ chisq.test(socialm)
 # MAIN STATS
 
 #create empty tibbles to fill in following loop
-diff<-tibble(id=alldata$ResponseID) #tibble for difference scores
+diff<-tibble(id=alldata$ResponseId) #tibble for difference scores
 
 table1<-tibble("Variable"=character(),"MeanGames"=character(),"MeanMovies"=character(),"t"=numeric(),"df"=numeric(),"CI"=character(),"d"=numeric(),"p"=numeric())
 
@@ -96,7 +99,7 @@ table1$bonf<-pv(table1$rawp,method="bonferroni",n=subscales)
 #################
   # GENERATE A TABLE OF MEAN SELF REP SCORES FOR CORRELATIONS
   
-meanstable<-tibble(id=alldata$ResponseID)
+meanstable<-tibble(id=alldata$ResponseId)
 for (i in seq(2,subscales+1)){ #Main loop to run stats. Iterated for each subscale
   meanstable<-cbind(meanstable,rowMeans(cbind(totals[,i],totals[,i+subscales]))) 
   colnames(meanstable)[i]<-sub("Games_","Mean_",names(totals[i])) # generate proper label (replace "Games_" string with "Mean_" string)
@@ -105,14 +108,7 @@ for (i in seq(2,subscales+1)){ #Main loop to run stats. Iterated for each subsca
 meanstable<-cbind(general[-1],meanstable[-1])
 names(meanstable)<-gsub("General_|Mean_","",names(meanstable))
 
-source("scripts/cortable.R")
+cor.state<- megacor(meanstable[-1:-6,-1:-6],p.adjust.method="holm",removeTriangle = "lower")
 
-cor.means<-corstars(meanstable,result="none",keeplabels = 1,method="pearson") #use cortable function to insert *s
-cor.means<-cor.means[c(2:6,1),c(7:16)]
+cor.trait<-megacor(meanstable[c(2:6,1)],meanstable[7:16],p.adjust.method="holm")
 
-# can do corrections here... but it destroys all relationships
-corlist<-corr.test(meanstable[c(2:6,1)],meanstable[7:16],adjust="none") #stores r,n,p in a list
-
-# hacky table that shows ps and rs in one table
-combined<-rbind(round_df(corlist$p),rep("r below",10))
-combined<-rbind(combined,cor.means)
