@@ -1,7 +1,12 @@
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-p_load(tidyverse,psych,multtest)
+p_load(tidyverse,psych,lsr)
 p_load_gh("vince-p/vtools")
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("multtest")
 
 alldata<-read_csv("cleandata/alldata.csv")
 totals<-read.csv("cleandata/totals.csv")
@@ -14,6 +19,35 @@ subscales<-sum((startsWith(names(totals),"Games"))) #Calculate # of distinct sub
 
 ######################
 # DEMOGRAPHICS
+#
+#
+#COUNTRY TEXT
+for (i in 1:length(table(alldata$demo_4))){
+  
+  if (sort(table(alldata$demo_4),decreasing=TRUE)[[i]]>1) {
+    joiner<-" participants were from "
+  } else {
+    joiner<-" participant was from "
+  }
+  
+  if (i==length(table(alldata$demo_4))) {
+    ending<-"."
+  } else if (i==length(table(alldata$demo_4))-1) {
+    ending<-", and "
+  } else
+    ending<-", "
+  
+  cat(paste0(sort(table(alldata$demo_4),decreasing=TRUE)[[i]],joiner,simpleCap(names(sort(table(alldata$demo_4),decreasing=TRUE)[i])),ending))
+}
+
+# AGE
+fq(alldata$demo_1)
+# GENDER
+table(alldata$demo_2)
+# Education
+fq(alldata$demo_3)
+#
+#
 #
 #
 #TIME PLAYED
@@ -38,6 +72,20 @@ out.genre<-select(alldata,ResponseId,Game=GamesGeneral_2,Genre=GamesGeneral_3,Pl
 #can write this to a CSV
 
 #######################
+
+#####################
+#SOCIAL
+out.social<-data.frame(var=c("Games","Movies"),
+                       Alone=c(table(alldata$GamesGeneral_13),table(alldata$MoviesGeneral_13)),
+                       WithOthers=c(table(alldata$GamesGeneral_14),table(alldata$MoviesGeneral_14)),
+                       Remotely=c(table(alldata$GamesGeneral_15),table(alldata$MoviesGeneral_15))
+)
+# this code just enters the social values into a matrix and then runs chi-squared on it
+socialm<-matrix(c(table(alldata$GamesGeneral_13),table(alldata$MoviesGeneral_13),table(alldata$GamesGeneral_14),table(alldata$MoviesGeneral_14),table(alldata$GamesGeneral_15),table(alldata$MoviesGeneral_15)),nrow=2)
+
+chisq.test(socialm)
+
+
 #DEVICE
 out.device<-tibble(var=c("Games","Movies"),
                Mobile=c(table(alldata$GamesGeneral_7),table(alldata$MoviesGeneral_7)),
@@ -48,19 +96,7 @@ out.device<-tibble(var=c("Games","Movies"),
                Desktop=c(table(alldata$GamesGeneral_12),table(alldata$MoviesGeneral_12))
                )
 
-#####################
-#SOCIAL
-out.social<-data.frame(var=c("Games","Movies"),
-               Alone=c(table(alldata$GamesGeneral_13),table(alldata$MoviesGeneral_13)),
-               WithOthers=c(table(alldata$GamesGeneral_14),table(alldata$MoviesGeneral_14)),
-               Remotely=c(table(alldata$GamesGeneral_15),table(alldata$MoviesGeneral_15))
-               )
 
-
-# this code just enters the social values into a matrix and then runs chi-squared on it
-socialm<-matrix(c(table(alldata$GamesGeneral_13),table(alldata$MoviesGeneral_13),table(alldata$GamesGeneral_14),table(alldata$MoviesGeneral_14),table(alldata$GamesGeneral_15),table(alldata$MoviesGeneral_15)),nrow=2)
-                
-chisq.test(socialm)
 
 
 
@@ -90,9 +126,9 @@ for (i in seq(2,subscales+1)){ #Main loop to run stats. Iterated for each subsca
   # diff<-cbind(diff,totals[,i]-totals[,i+subscales]) # calculate diffscore. Pos value means games are greater than movies.
   # colnames(diff)[i]<-sub("Games_","DIFF_",names(totals[i])) # generate proper diff label (replace "Games_" string with "Diff_" string
 }
-table1$uncorrected<-pv(table1$rawp,method="none",n=subscales)
+#table1$uncorrected<-pv(table1$rawp,method="none",n=subscales)
 table1$holm<-pv(table1$rawp,method="holm",n=subscales)
-table1$bonf<-pv(table1$rawp,method="bonferroni",n=subscales)
+#table1$bonf<-pv(table1$rawp,method="bonferroni",n=subscales)
 
 
 
@@ -108,7 +144,9 @@ for (i in seq(2,subscales+1)){ #Main loop to run stats. Iterated for each subsca
 meanstable<-cbind(general[-1],meanstable[-1])
 names(meanstable)<-gsub("General_|Mean_","",names(meanstable))
 
+#lsr::correlate(meanstable[-1:-6,-1:-6],test=TRUE) # Use this to get p-values
 cor.state<- megacor(meanstable[-1:-6,-1:-6],p.adjust.method="holm",removeTriangle = "lower")
 
+#lsr::correlate(meanstable[c(2:6,1)],test=TRUE)  # Use this to get p-values
 cor.trait<-megacor(meanstable[c(2:6,1)],meanstable[7:16],p.adjust.method="holm")
 
