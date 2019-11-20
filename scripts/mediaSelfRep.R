@@ -147,6 +147,7 @@ names(meanstable)<-gsub("General_|Mean_","",names(meanstable))
 #lsr::correlate(meanstable[-1:-6,-1:-6],test=TRUE) # Use this to get p-values
 cor.state<- megacor(meanstable[-1:-6,-1:-6],p.adjust.method="holm",removeTriangle = "lower")
 
+
 #lsr::correlate(x=meanstable[c(2:6,1)],y=meanstable[7:16],test=TRUE)  # Use this to get p-values
 cor.trait<-megacor(meanstable[c(2:6,1)],meanstable[7:16],p.adjust.method="holm")
 
