@@ -1,0 +1,802 @@
+---
+title: "SelfRepMedia"
+author: "Vince Polito"
+date: "9/07/2020"
+output: html_notebook
+#output: html_notebook # Notebook format
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+if (!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load(scales,dplyr,readr,psych,tidyr,knitr,userfriendlyscience,afex,flextable,officer,emmeans,ggplot2,ggpubr,cowplot,stringr,plyr)
+p_load_current_gh("vince-p/vtools")
+
+##############
+alldata<-read_csv("cleandata/alldata.csv")
+totals<-inner_join(read_csv("cleandata/general.csv"),read.csv("cleandata/totals.csv"))
+
+# Drop Presence following reviewer suggestion
+totals <- select(totals,-contains("_Presence"))
+
+allscales <- c("DFS","SOARS_Involuntariness","SOARS_Effortlessness","ITC_SpatialPresence","ITC_Engagement","ITC_EcologicalValidity","ITC_NegativeEffects","CharIdentification","TIME")
+
+names(totals)<-gsub("General_","trait_",names(totals))
+
+#dataset: o=forums, n=turkprime
+#gender: 1=male, 2=female (demo_2)
+#order: 1=gamesFirst, 2=MoviesFirst
+##############
+```
+
+
+
+```{r outliers, echo=FALSE}
+################################################################
+# CHECK OUTLIERS
+# p_load(datawrangling) # Doesnt work with R 4.0.0 yet
+source("scripts/datawrangling.R") # workaround - scripts manually copied from github.com/dr-JT/datawrangling/ 
+cutoff_sd <- 3
+cutoff_exclude <- 3
+
+# cutoff value here is number of SDs from mean
+trimmed <- trim(totals[5:length(totals)],variables = "all", cutoff = cutoff_sd, replace = "NA", id = "ID")   
+
+# generate table showing number of outliers for each measure
+outliers <- as.data.frame(sapply(trimmed, function(x) sum(is.na (x))))
+#paste(sum(outliers),"outlier scores marked as NA")
+
+#generate ctotals df that replaces outlier values with NA
+#ctotals <-cbind(totals[1:4],missing=rowSums(is.na (trimmed)),trimmed)
+ctotals <-cbind(totals[1:4],trimmed)
+
+#Remove participants with NAs in covariates
+complete_covar <- na.omit(select(ctotals,id,contains("trait_")))
+ctotals <- ctotals[ctotals$id %in% complete_covar$id,]
+exclude.covar <- nrow(totals)-nrow(ctotals)
+
+ctotals$missing=rowSums(is.na(ctotals))
+ctotals<-select(ctotals,1:4, missing,everything())
+#print("Tally of counts of outliers x participants")
+#table(ctotals$missing)
+
+# Remove participants with > X outlier scores
+cutoff <- 3
+#paste0("Excluding ",sum(ctotals$missing>=cutoff)," participants with >= ",cutoff," outlier scores")
+exclude.outliers<-length(which(ctotals$missing>=3))
+ctotals <- ctotals[ctotals$missing<3,]
+
+# Generate calldata table with only retained participants
+calldata <- alldata[alldata$ResponseId %in% ctotals$id,]
+################################################################
+```
+# METHODS
+
+## Participants
+350 participants completed the study online, however only `r nrow(alldata)` participants met the inclusion criteria of nominating both a specific video game and a specific movie or TV show that they engaged with for more than one hour per week. A further `r exclude.covar+exclude.outliers` participants were excluded due to outlier values (detailed below). `r nrow(calldata)` participants were retained (`r table(calldata$demo_2)[[1]]` males, `r table(calldata$demo_2)[[2]]` females). `r fq(calldata$demo_1)[1,1]` (`r fq(calldata$demo_1)[2,1]`%) participants were aged 18-25, `r fq(calldata$demo_1)[1,2]` (`r fq(calldata$demo_1)[2,2]`%) aged 26-35, `r fq(calldata$demo_1)[1,3]` (`r fq(calldata$demo_1)[2,3]`%) aged 36-45, `r fq(calldata$demo_1)[1,4]` (`r fq(calldata$demo_1)[2,4]`%) aged 46-55, and `r fq(calldata$demo_1)[1,5]` (`r fq(calldata$demo_1)[2,5]`%) aged over 55. `r fq(calldata$demo_4)[1,5]` (`r fq(calldata$demo_4)[2,5]`%) participants were from the USA, `r fq(calldata$demo_4)[1,1]` (`r fq(calldata$demo_4)[2,1]`%) participants were from Australia, and the remainder were from the United Kingdom, Norway, and the Philippines. `r fq(calldata$demo_3)[1,1]` (`r fq(calldata$demo_3)[2,1]`%) participants reported their highest education as high school, `r fq(calldata$demo_3)[1,2]` (`r fq(calldata$demo_3)[2,2]`%) had an undergraduate degree, and `r fq(calldata$demo_3)[1,3]` (`r fq(calldata$demo_3)[2,3]`%) had a postgraduate degree. 
+
+
+```{r habit_stats}
+genres <- read.csv("cleandata/genres.csv")
+gamegenres <- table(genres$GameGenre) %>% 
+        as.data.frame() %>% 
+        arrange(desc(Freq))
+moviegenres <- table(genres$MovieGenre) %>% 
+        as.data.frame() %>% 
+        arrange(desc(Freq))
+
+timeplayed<-psych::describe(select(calldata,GamesGeneral_5,GamesGeneral_6,MoviesGeneral_5,MoviesGeneral_6))
+out.time<-tibble(var=c("Games","Movies"),
+                 days=c(r(timeplayed$mean[1]),r(timeplayed$mean[3])),
+                 sd_days=c(r(timeplayed$sd[1]),r(timeplayed$sd[3])),
+                 min_days=c(timeplayed$min[1],timeplayed$min[3]),
+                 max_days=c(timeplayed$max[1],timeplayed$max[3]),
+                 hours=c(r(timeplayed$mean[2]),r(timeplayed$mean[4])),
+                 sd_hours=c(r(timeplayed$sd[2]),r(timeplayed$sd[4])),
+                 min_hours=c(timeplayed$min[2],timeplayed$min[4]),
+                 max_hours=c(timeplayed$max[2],timeplayed$max[4]))
+out.social<-data.frame(MediaType=c("Games","Movies"),
+                       Alone=c(table(calldata$GamesGeneral_13),table(calldata$MoviesGeneral_13)),
+                       WithOthers=c(table(calldata$GamesGeneral_14),table(calldata$MoviesGeneral_14)),
+                       Remotely=c(table(calldata$GamesGeneral_15),table(calldata$MoviesGeneral_15))
+)
+socialm<-matrix(c(table(calldata$GamesGeneral_13),table(calldata$MoviesGeneral_13),table(calldata$GamesGeneral_14),table(calldata$MoviesGeneral_14),table(calldata$GamesGeneral_15),table(calldata$MoviesGeneral_15)),nrow=2)
+chi <- chisq.test(socialm)
+```
+# RESULTS
+
+## Media Habits
+Participants nominated a wide variety of genres for their selected media. For TV/movies the most popular genres given were fantasy (`r percent(moviegenres[moviegenres$Var1=="fantasy",2]/sum(moviegenres$Freq),accuracy=0.1)`) drama (`r percent(moviegenres[moviegenres$Var1=="drama",2]/sum(moviegenres$Freq),accuracy=0.1)`), comedy (`r percent(moviegenres[moviegenres$Var1=="comedy",2]/sum(moviegenres$Freq),accuracy=0.1)`), action (`r percent(moviegenres[moviegenres$Var1=="action",2]/sum(moviegenres$Freq),accuracy=0.1)`), and crime (`r percent(moviegenres[moviegenres$Var1=="crime",2]/sum(moviegenres$Freq),accuracy=0.1)`). Genre is a more difficult concept in videogames. As noted by Apperley (2006), here genre may refer to perspective (e.g., first or third person), playstyle (e.g., sports, roleplaying game, shooter) or representational aspect (e.g., fantasy, science fiction). In this sample, games were mainly categorised by their play style. The most popular categories were first person shooters online shooter (`r percent(gamegenres[gamegenres$Var1=="FPS",2]/sum(gamegenres$Freq),accuracy=0.1)`), role playing games (`r percent(gamegenres[gamegenres$Var1=="RPG",2]/sum(gamegenres$Freq),accuracy=0.1)`), action (`r percent(gamegenres[gamegenres$Var1=="Action",2]/sum(gamegenres$Freq),accuracy=0.1)`), sports (`r percent(gamegenres[gamegenres$Var1=="Sports",2]/sum(gamegenres$Freq),accuracy=0.1)`), strategy / simulation (`r percent(gamegenres[gamegenres$Var1=="Strategy",2]/sum(gamegenres$Freq),accuracy=0.1)`) and MOBA (Multiplayer Online Battle Arena; `r percent(gamegenres[gamegenres$Var1=="MOBA",2]/sum(gamegenres$Freq),accuracy=0.1)`). 
+
+Participants reported engaging with active media on more days per week (*M* = `r out.time[[1,"days"]]`, *SD* = `r out.time[[1,"sd_days"]]`) than passive media (*M* = `r out.time[[2,"days"]]`, *SD* = `r out.time[[1,"sd_days"]]`, `r v.test(x=calldata$GamesGeneral_5,y=calldata$MoviesGeneral_5)`). Participants also reported engaging with active media for more hours per week (*M* = `r out.time[[1,"hours"]]`, *SD* = `r out.time[[1,"sd_hours"]]`) than passive media (*M* = `r out.time[[2,"hours"]]`, *SD* = `r out.time[[1,"sd_hours"]]`, `r v.test(x=calldata$GamesGeneral_6,y=calldata$MoviesGeneral_6)`).
+
+`r kable(out.social,caption="Table 1 - Social context of active and passive media")`
+
+Table 1 shows the social context of media engagement. There was a significant association between type of media and social context, *χ^2^*(2) = `r r(chi$statistic)`, *p* `r pv(chi$p.value)`. This represents the fact that individuals were more likely to connect with others in person when watching passive media and more likely to connect with others remotely while playing games (active media).
+
+# Preliminary Analyses
+## Outliers
+We first checked for outliers on all measures. Outliers were defined as any score > `r cutoff_sd` standard deviations from the mean. `r sum(outliers)` outlier scores were identified. `r exclude.covar` participants were excluded for outlier scores on trait variables (as these were critical for the main analysis). In addition, `r exclude.outliers` participant were excluded for recording `r cutoff_exclude` or more outlier scores on state measures. There were no indications of skewness or kurtosis for any variables (see table S1). 
+```{r descriptives, echo=FALSE, message=FALSE, warning=FALSE}
+################################################################
+# CHECK DESCRIPTIVES)
+p_load(summarytools)
+kable(rbind(summarytools::descr(select(ctotals,starts_with("trait")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE),
+          summarytools::descr(select(ctotals,starts_with("Games")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE),
+          summarytools::descr(select(ctotals,starts_with("Movies")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE)),
+      digits=2, caption = "Table S1 - Descriptive Summary.")
+################################################################
+
+```
+## Reliability
+```{r ReliabilityCalculation, echo=FALSE, warning=FALSE}
+################################################################
+# NEXT REPORT RELIABILITIES
+
+# This function populates a table of reliability metrics from s, which is the output of the scalereliability
+# runction. S needs to be run on properly reverse coded data. This data is organised in the seperate
+# calc.rel function.
+rtable <- function(varname,s,i){
+  data.frame(measure=varname, 
+             omega=s$intermediate$omega.ordinal$est,
+             omega.ci.low=s$intermediate$omega.ordinal.ci$ci.lower,
+             omega.ci.high=s$intermediate$omega.ordinal.ci$ci.upper,
+             #omegaCI=s$output$omega.ordinal.ci,
+             alpha=s$intermediate$alpha.ordinal$est,
+             alpha.ci.low=s$intermediate$alpha.ordinal.ci$ci.lower,
+             alpha.ci.high=s$intermediate$alpha.ordinal.ci$ci.upper
+  )
+}
+
+# calc.rel generates a temporary dataframe with reverse coded data and then calls the rtable function to calculate
+# reliability scores (omega and alpha).
+calc.rel <- function(mediatype="",scalename,subscale){
+  rel.output<-tibble()
+  for (i in 1:(length(subscale))) {
+    #print(paste0(mediatype,"_",names(subscale[i])))
+    tempdata <- as.data.frame(reverse.code(keys=sign(subscale[[i]]), 
+                                           items=select(calldata,                                                         contains(paste0(mediatype,scalename)))[abs(subscale[[i]])]))
+  names(tempdata) <- gsub("-","_R",names(tempdata))
+     s <- scaleReliability(tempdata)
+     rtable(varname=paste0(mediatype,"_",names(subscale[i])),s,i)
+     rel.output<- rbind(rel.output,
+               rtable(varname=paste0(mediatype,"_",names(subscale[i])),s,i))
+    #print("END OF LOOP")
+  }
+  return(rel.output)
+  
+}
+
+
+#start with a blank table of reliabilities
+rel<-tibble()
+
+
+# bind_rows is a lovely dplyr function that takes output from lapply and smushes it into a dataframe
+#Flow
+rel<-rbind(rel,lapply(c("Games","Movies"), calc.rel,
+            scalename="DFS",
+            subscale=list(DFSTotal=c(1,2,3,4,5,6,7,8,9))) %>% 
+  bind_rows)
+
+#SoA
+rel<-rbind(rel,lapply(c("Games","Movies"), calc.rel,
+            scalename="SOARS",
+            subscale=list(SOARS_Involuntariness=c(-2,-3,-5,6,9),
+                          SOARS_Effortlessness=c(-1,4,7,8,-10))) %>% 
+  bind_rows)
+
+
+#lapply(c("Games","Movies"), calc.rel,scalename="SOARS",subscale=list(SOARS_Involuntariness=c(-2,-3,-5,6,9),SOARS_Effortlessness=c(-1,4,7,8,-10))) 
+
+
+#Presence (2 measures)
+rel<-rbind(rel,lapply(c("Games","Movies"), calc.rel,
+            scalename="ITC",
+            subscale=list(ITC_SpatialPresence=c(10, 13,	15,	18,	19,	24,	25,	28,	29,	30,	31,	34,	35,	37,	39,	40,	41,	42,	44),
+                          ITC_Engagement=c(1, 3,	4,	5,	6,	7,	8,	9,	14,	22,	23,	36,	38),
+                          ITC_EcologicalValidity=c(11,17,21,26,33),
+                          ITC_NegativeEffects=c(2,16,20,27,32,43))) %>% 
+  bind_rows)
+
+# rel<-rbind(rel,lapply(c("Games","Movies"), calc.rel,
+#             scalename="Presence",
+#             subscale=list(Presence=c(1,2,3))) %>% 
+#   bind_rows)
+
+#Character identification
+rel<-rbind(rel,lapply(c("Games","Movies"), calc.rel,
+            scalename="General",
+            subscale=list(CharIdentification=c(18:22))) %>% 
+  bind_rows)
+
+
+#Time perception
+# single item scale, no reliability
+
+
+#m5-50
+rel<-rbind(rel,calc.rel(scalename="M5",subscale=list(M5_Extraversion=c(10,-17,-26,27,-31,-36,39,42,-45,48), 
+            M5_Agreeableness=c(-4,-13,24,-32,33,-34,40,44,-46,49),
+            M5_Conscientiousness=c(-6,12,-18,19,-23,35,-38,41,47,-50),
+            M5_Neuroticism=c(-3,7,-9,11,-14,16,-21,-25,28,30),
+            M5_Openess=c(1,2,-5,8,-15,-20,-22,-29,37,43))))
+
+#TAS
+rel<-rbind(rel,calc.rel(scalename="TAS",subscale=list(#TAS_Sentient=c(2,6,10,15,17,23,26,27,30,33,34),
+                                                      #TAS_Prone=c(1,3,4,5,7,9,11,13,14,16,18,19,21,22,28,29,31,32),
+                                                      #TAS_Responsiveness=c(34,23,6,2,15,24,8),
+                                                      #TAS_Synesthesia=c(27,33,10,17,25,26,30),
+                                                      #TAS_Cognition=c(14,28,31,29,32,22,13), 
+                                                      #TAS_Oblivious=c(3,18,7,12,21,16), 
+                                                      #TAS_Reminiscence=c(1,19,4),
+                                                      #TAS_Awareness=c(20,5,9,11),
+                                                      TAS_Total=c(1:34))))
+################################################################
+
+```
+
+Reliability was good for all measures (all ω >= `r r(min(rel$omega))`). Detailed reliability metrics are provided in table S2.
+
+```{r ReliabilityTable, echo=FALSE}
+#format this table to show CIs nicely
+rel2 <- tibble(Measure=rel$measure,
+               omega=paste0(r(rel$omega)," [",r(rel$omega.ci.low)," : ",r(rel$omega.ci.high),"]"),
+               alpha=paste0(r(rel$alpha)," [",r(rel$alpha.ci.low)," : ",r(rel$alpha.ci.high),"]")
+                 )
+kable(rel2, caption ="Table S2 - McDonald's Omega and Cronbach's Alpha reliability metrics for all measures.")
+
+
+```
+
+
+## Testing for confounds
+
+
+```{r prelim_tests, echo=FALSE, message=FALSE, warning=FALSE}
+
+# RESHAPE LONGER
+# Could not work out how to do this in a single step
+names(ctotals) <- gsub("Games_","Games-",names(ctotals))
+names(ctotals) <- gsub("Movies_","Movies-",names(ctotals))
+longer<- pivot_longer(ctotals, 
+                      cols=-1:-11,
+                      names_to = c("mediatype","measure"),
+                      names_sep = "-",
+                      values_to = "score")
+
+wider <- pivot_wider(longer, #not totally wide but just wide enough
+                     names_from=measure,
+                     values_from=score)
+
+wider$id <- factor(wider$id)
+wider$dataset <- as.factor(wider$dataset)
+wider$order <- as.factor(wider$order)
+levels(wider$order) <- c("GamesFirst","MoviesFirst")
+wider$gender <- as.factor(wider$gender)
+
+
+#This function runs multiple prelimnary ANOVAS to check for confounds and organses output neatly
+pre_test <- function(dv){
+  #run 3 separate ANOVAS for dataset, order and gender
+  #we are only interested in here in whether each of these factors interacts with mediatype
+  xd <- aov_ez(between="dataset",id="id", dv=dv, data=wider, within = "mediatype", anova_table = list("pes"))
+  xc <- aov_ez(between="order",id="id", dv=dv, data=wider, within = "mediatype", anova_table = list("pes"))
+  xg <- aov_ez(between="gender",id="id", dv=dv, data=wider, within = "mediatype", anova_table = list("pes"))
+  #create an output table with output for each of the three tests
+  # report interaction name, df, F-value, p-value
+  prelimtests <- tibble(dv=dv,
+                        d_interaction=gsub(":","X",rownames(xd$anova_table)[3]),
+                        d_df=xd$anova_table[3,2],
+                        d_F=xd$anova_table[3,4],
+                        d_p=pv(xd$anova_table[3,6]),
+                        c_interaction=gsub(":","X",rownames(xc$anova_table)[3]),
+                        c_df=xc$anova_table[3,2],
+                        c_F=xc$anova_table[3,4],
+                        c_p=pv(xc$anova_table[3,6]),
+                        g_interaction=gsub(":","X",rownames(xg$anova_table)[3]),
+                        g_df=xg$anova_table[3,2],
+                        g_F=xg$anova_table[3,4],
+                        g_p=pv(xg$anova_table[3,6]))
+  }
+#run preliminary ANOVA tests for all dvs
+prelim_output <- lapply(allscales,FUN=pre_test) %>% bind_rows
+#kable(prelim_output,digits=3, caption = "Table S3 - )
+# create a neat table for prelim results
+prelim_table <- flextable(select(prelim_output,-contains("_interaction"))) # start with table without interaction label cols
+prelim_table <- set_header_labels(prelim_table, dv="",d_df="Dataset x Media Type",c_df="Order x Media Type",g_df="Gender x Media Type") # rename labels
+prelim_table <- merge_at(prelim_table,i=1,j=2:4,part="header") # merge cols
+prelim_table <- merge_at(prelim_table,i=1,j=5:7,part="header")
+prelim_table <- merge_at(prelim_table,i=1,j=8:10,part="header")
+prelim_table <- add_header_row(prelim_table,values=c("Measure","df","F","p","df","F","p","df","F","p"),top=FALSE) # add second header row
+prelim_table <- align(prelim_table,align="center",part="header") # align labels
+prelim_table <- border_remove(x = prelim_table) # remove all borders
+#f <- border_outer(f, part="header", border = fp_border(color="black", width = 1) ) # add more borders
+#f <- border_outer(f, part="body", border = fp_border(color="black", width = 2) )
+prelim_table <- hline(prelim_table,i=2,part="header",border = fp_border(color="black")) # add horizontal line
+prelim_table <- colformat_num(prelim_table,j=c(3,6,9),digits=2) # format F cols to 2 dp
+prelim_table <- set_caption(prelim_table, caption = "Table S3 - Summary of ANOVA tests for potential confounds")
+#prelim_table <- font(prelim_table, fontname = "Times", part="all") not sure why this does not work??
+prelim_table <- fontsize(prelim_table, size=12,part="all")
+set_table_properties(prelim_table, width = 1, layout = "autofit") # autofit width
+
+```
+We found a dataset x media type interaction for our measure of Flow (*F*(1,`r prelim_output[[which(prelim_output$dv=="DFS"),"d_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="DFS"),"d_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="DFS"),"d_p"]]`). 
+
+We also found order x media type interactions for Flow (*F*(1,`r prelim_output[[which(prelim_output$dv=="DFS"),"c_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="DFS"),"c_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="DFS"),"c_p"]]`), Involuntariness (*F*(1,`r prelim_output[[which(prelim_output$dv=="SOARS_Involuntariness"),"c_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="SOARS_Involuntariness"),"c_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="SOARS_Involuntariness"),"c_p"]]`), Effortlessness (*F*(1,`r prelim_output[[which(prelim_output$dv=="SOARS_Effortlessness"),"c_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="SOARS_Effortlessness"),"c_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="SOARS_Effortlessness"),"c_p"]]`), Engagement (*F*(1,`r prelim_output[[which(prelim_output$dv=="ITC_Engagement"),"c_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="ITC_Engagement"),"c_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="ITC_Engagement"),"c_p"]]`).
+and Ecological Validity (*F*(1,`r prelim_output[[which(prelim_output$dv=="ITC_EcologicalValidity"),"c_df"]]`) = `r r(prelim_output[[which(prelim_output$dv=="ITC_EcologicalValidity"),"c_F"]])`, *p* = `r prelim_output[[which(prelim_output$dv=="ITC_EcologicalValidity"),"c_p"]]`). 
+
+Gender did not interact with media type for any measure. Details of all tested interactions are reported in table S3.
+
+## Main Analysis
+
+### Descriptives
+```{r main_descriptives}
+describeBy(wider[allscales], group=wider$mediatype)
+```
+
+
+## ANCOVAs for each dv
+
+
+
+
+
+```{r echo=FALSE, warning=FALSE}
+
+levels(wider$order)[levels(wider$order)=="GamesFirst"] <- "Int.First"
+levels(wider$order)[levels(wider$order)=="MoviesFirst"] <- "Non-Int First"
+
+#centre variables
+wider$trait_TAS_Total <- wider$trait_TAS_Total-mean(wider$trait_TAS_Total,na.rm=TRUE)
+wider$trait_M5_Extraversion <- wider$trait_M5_Extraversion-mean(wider$trait_M5_Extraversion,na.rm=TRUE)
+wider$trait_M5_Agreeableness <- wider$trait_M5_Agreeableness-mean(wider$trait_M5_Agreeableness,na.rm=TRUE)
+wider$trait_M5_Conscientiousness <- wider$trait_M5_Conscientiousness-mean(wider$trait_M5_Conscientiousness,na.rm=TRUE)
+wider$trait_M5_Neuroticism <- wider$trait_M5_Neuroticism-mean(wider$trait_M5_Neuroticism,na.rm=TRUE)
+wider$trait_M5_Openess <- wider$trait_M5_Openess-mean(wider$trait_M5_Openess,na.rm=TRUE)
+
+#wider<-select(wider,-starts_with("General_"))
+traits <- names(select(wider,starts_with("trait_")))
+
+#SET THEME PARAMETERS
+theme_set(
+  theme_pubr()  #axes
+  #scale_x_continuous(breaks=seq(min,max),limits=c(min, max))+
+  #coord_fixed(ratio=1)+ #ration of y-axis to x-axis
+  #theme_minimal(base_size = 15)+ # no axes
+  #theme_pubr(base_size = 15)+ #axes
+  #theme(legend.position="bottom")
+  #theme(legend.position="none") #+
+  #theme(axis.title=element_text(size=20))
+)
+
+#create dummy plot (used only for the legend)
+mt<-factor(c(1,2,2,1),labels =c("Interactive","Non-Interactive"))
+dummy<-data.frame(x=c(7,4,2,5),y=c(3,4,1,7),mt)
+dum<-ggplot(data=dummy, aes(x=x, y=y, group=mt)) +
+  geom_line(aes(color=mt),size=2)+
+  geom_point()+ guides(color=guide_legend(title=NULL))
+legend <- get_legend( # save legend to put at the bottom of all plots
+  dum + theme(legend.box.margin = margin(0, 0, 0, 0))
+)
+
+
+
+
+runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
+
+  #empty lists for plots      
+  row1<-NULL
+  row2<-NULL
+  
+  
+  #Im sure it would be better to load these functions outside of this function...
+    ft <- function(fctr,endchar=NULL){ #function to report F test
+    mdl=anova.out
+    paste0("F(",
+         mdl[fctr,"num Df"],
+         ", ",
+         mdl[fctr,"den Df"],
+         ") = ",
+         r(mdl[fctr,"F"]),
+         ", p ",
+         pv2(mdl[fctr,"Pr(>F)"]),
+         ", PES = ",
+         r(mdl[fctr,"pes"]),
+         endchar)
+  }
+  
+# covariate plot function
+  cov_plot <- function(trait,dv,anova_model,ymin,ymax){
+  neat_trait<-gsub("trait_M5_","",trait)
+  neat_trait <- gsub("trait_TAS_Total","Absorption",neat_trait)
+  covplot <- emmip(anova_model, as.formula(paste("mediatype ~ ",trait)), cov.reduce = range)+ 
+    #scale_size_manual(values=c(1.5,1.5)) + #these two lines make lines heavier
+    #aes(size = mediatype) + 
+    ylim(ymin,ymax) +
+    #xlim(-3,3)+
+    ylab(title) +
+    xlab(neat_trait)+
+    theme(text = element_text(size=10))+
+    theme(axis.title.y = element_text(vjust=-.5))+
+    theme(legend.position="none")
+
+  if(grepl("_M5_",trait)){
+    covplot <- covplot+xlim(-3,3)+scale_x_continuous(breaks=seq(-3,3),limits=c(-3, 3))
+    }
+  return(covplot)
+  }
+  
+ 
+  
+  
+  #generate the anova results
+      anova_model <- aov_ez(id="id", dv=dv, data=wider, 
+         between=confounds, 
+         within = "mediatype", 
+         covariate = traits,
+         factorize = FALSE,
+         anova_table = list("pes"))#,
+         #print.formula = TRUE)
+  anova.out <- anova_model$anova_table
+  
+  print(nice(anova_model,sig_symbols = ""))
+  
+  
+  
+  # MAIN EFFECT OF MEDIA TYPE
+  em_mediatype <- confint(emmeans(anova_model,"mediatype"))
+  
+  
+  # Generate output text for main ANCOVA result
+  if(anova.out["mediatype","Pr(>F)"]>.05) {
+    # If no sig dif, then just report F test results
+    stat.out <- paste0("There was no main effect of MediaType for ",dv,", ",ft("mediatype","."))
+  } else {
+    # if sig dif, then report means and SDs  
+    x<-as.data.frame(unlist(stby(wider[dv],wider$mediatype,descr, stats=c("Mean","sd"),transpose=TRUE)))
+      ifelse(x["Games.Mean",1]>x["Movies.Mean",1],
+             # stats if games > movies
+             stat.out <- paste0(dv," was higher for interactive media (M = ",r(x["Games.Mean",1]),", SD = ",r(x["Games.Std.Dev",1]),
+                                ", CI[",r(em_mediatype[em_mediatype$mediatype=="Games",5]),", ",r(em_mediatype[em_mediatype$mediatype=="Games",6]),
+                             "]) than for non-interactive media (M = ",r(x["Movies.Mean",1]),", SD = ",r(x["Movies.Std.Dev",1]),
+                             ", CI[",r(em_mediatype[em_mediatype$mediatype=="Movies",5]),", ",r(em_mediatype[em_mediatype$mediatype=="Movies",6]),"]; ",
+                             ft("mediatype",").")),
+            # stats if movies < movies
+            stat.out <- paste0(dv," was higher for non-interactive media (M = ",r(x["Movies.Mean",1]),", SD = ",r(x["Movies.Std.Dev",1]),
+                               ", CI[",r(em_mediatype[em_mediatype$mediatype=="Movies",5]),", ",r(em_mediatype[em_mediatype$mediatype=="Movies",6]),
+                             "]) than for interactive media (M = ",r(x["Games.Mean",1]),", SD = ",r(x["Games.Std.Dev",1]),
+                             ", CI[",r(em_mediatype[em_mediatype$mediatype=="Games",5]),", ",r(em_mediatype[em_mediatype$mediatype=="Games",6]),
+                             "; ",ft("mediatype",").")))
+
+      
+  }
+  #cat(stat.out)
+        
+  #generate plot (always show this plot)
+  ifelse(dv=="TIME",
+         row1[[1]] <- afex_plot(anova_model,x="mediatype",error="within",mapping=c("color"),legend_title="MediaType",
+            data_geom = ggplot2::geom_jitter,
+            data_arg = list(width = 0.15),
+            point_arg = list(size = 2,color="black"),
+            error_arg = list(size = .9, width = 0.1,color="black"),
+            factor_levels = list(mediatype = c("Interactive", "Non-Interactive"))) +
+            ylim(ymin,ymax)+
+            ylab(title)+
+            xlab("Media Type")+
+            theme(legend.position="none"),
+         row1[[1]] <- afex_plot(anova_model,x="mediatype",error="within",mapping=c("color"),legend_title="MediaType",
+            data_arg = list(size=.9),
+            point_arg = list(size = 2,color="black"),
+            error_arg = list(size = .9, width = 0.1,color="black"),
+            factor_levels = list(mediatype = c("Interactive", "Non-Interactive"))) +
+            ylim(ymin,ymax)+
+            ylab(title)+
+            xlab("Media Type")+
+            theme(legend.position="none"))
+  
+  # REPORT MAIN EFFECTS OF COVARIATES
+  
+  # calculate the slope of each covariate for the intercept ('1')
+  t_tas<-r(summary(emtrends(anova_model,"1",var=traits[1]))[1,2],3) #TAS
+  t_ext<-r(summary(emtrends(anova_model,"1",var=traits[2]))[1,2],3) #Extraversion
+  t_agr<-r(summary(emtrends(anova_model,"1",var=traits[3]))[1,2],3) #Agreeableness
+  t_con<-r(summary(emtrends(anova_model,"1",var=traits[4]))[1,2],3) #Conscientiousness
+  t_neu<-r(summary(emtrends(anova_model,"1",var=traits[5]))[1,2],3) #Neuroticism
+  t_ope<-r(summary(emtrends(anova_model,"1",var=traits[6]))[1,2],3) #Openness
+  
+  stat.out2 <- paste("Several traits impacted participants’",dv,"scores:")
+  
+  #test which covariates have main effects
+  if(anova.out["trait_TAS_Total","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Absorption (",ft("trait_TAS_Total",") "),"such that ",dv," scores changed by ",t_tas ," for each point increase in Absorption;")
+  }
+  
+  if(anova.out["trait_M5_Extraversion","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Extraversion (",ft("trait_M5_Extraversion",") "),"such that ",dv," scores changed by ",t_ext ," for each point increase in Extraversion;")
+  }
+  
+  if(anova.out["trait_M5_Agreeableness","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Agreeableness (",ft("trait_M5_Agreeableness",") "),"such that ",dv," scores changed by ",t_agr ," for each point increase in Agreeableness;")
+  }
+  
+  if(anova.out["trait_M5_Conscientiousness","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Conscientiousness (",ft("trait_M5_Conscientiousness",") "),"such that ",dv," scores changed by ",t_con ," for each point increase in Conscientiousness;")
+  }
+  
+  if(anova.out["trait_M5_Neuroticism","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Neuroticism (",ft("trait_M5_Neuroticism",") "),"such that ",dv," scores changed by ",t_neu ," for each point increase in Neuroticism;")
+  }  
+    
+  if(anova.out["trait_M5_Openess","Pr(>F)"] <.05){
+    stat.out2 <- paste0(stat.out2," there was an overall effect of Openness (",ft("trait_M5_Openess",") "),"such that ",dv," scores changed by ",t_ope ," for each point increase in Openness.")
+  }  
+  stat.out2  <-  str_replace_all(stat.out2,c("changed by -" = "decreased by -",
+                                             "changed by " = "increased by "))
+  
+  cat("\n\n")
+  #cat(stat.out2)
+  
+  
+  
+  #REPORT INTERACTIONS
+  
+  # calculate the slope of each covariate x mediatype interaction
+  i_tas<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_TAS_Total")$emtrends) #TAS
+  i_ext<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_M5_Extraversion")$emtrends) #Extraversion
+  i_agr<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_M5_Agreeableness")$emtrends) #Agreeableness
+  i_con<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_M5_Conscientiousness")$emtrends) #Conscientiousness
+  i_neu<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_M5_Neuroticism")$emtrends) #Neuroticism
+  i_ope<-as.data.frame(emtrends(anova_model, pairwise ~ mediatype, var ="trait_M5_Openess")$emtrends) #Openness
+  
+  stat.out3 <- "In addition, several traits interacted with MediaType:"
+  
+  if(anova.out["trait_TAS_Total:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Absorption x MediaType (",ft("trait_TAS_Total:mediatype",") "),"such that ",dv," scores changed by ",r(i_tas[i_tas$mediatype=="Games", 2],3)," for each point increase in Absorption for interactive media, and ",dv," scores changed by ",r(i_tas[i_tas$mediatype=="Movies", 2],3)," for each point increase in Absorption for non-interactive media;")
+  }
+   
+  if(anova.out["trait_M5_Extraversion:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Extraversion x MediaType (",ft("trait_M5_Extraversion:mediatype",") "),"such that ",dv," scores changed by ",r(i_ext[i_ext$mediatype=="Games", 2],3)," for each point increase in Extraversion for interactive media, and ",dv," scores changed by ",r(i_ext[i_ext$mediatype=="Movies", 2],3)," for each point increase in Extraversion for non-interactive media;")
+  }
+     
+  if(anova.out["trait_M5_Agreeableness:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Agreeableness x MediaType (",ft("trait_M5_Agreeableness:mediatype",") "),"such that ",dv," scores changed by ",r(i_agr[i_agr$mediatype=="Games", 2],3)," for each point increase in Agreeableness for interactive media, and ",dv," scores changed by ",r(i_agr[i_agr$mediatype=="Movies", 2],3)," for each point increase in Agreeableness for non-interactive media;")
+  }
+     
+  if(anova.out["trait_M5_Conscientiousness:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Conscientiousness x MediaType (",ft("trait_M5_Conscientiousness:mediatype",") "),"such that ",dv," scores changed by ",r(i_con[i_con$mediatype=="Games", 2],3)," for each point increase in Conscientiousness for interactive media, and ",dv," scores changed by ",r(i_con[i_con$mediatype=="Movies", 2],3)," for each point increase in Conscientiousness for non-interactive media;") 
+  }
+     
+  if(anova.out["trait_M5_Neuroticism:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Neuroticism x MediaType (",ft("trait_M5_Neuroticism:mediatype",") "),"such that ",dv," scores changed by ",r(i_neu[i_neu$mediatype=="Games", 2],3)," for each point increase in Neuroticism for interactive media, and ",dv," scores changed by ",r(i_neu[i_neu$mediatype=="Movies", 2],3)," for each point increase in Neuroticism for non-interactive media;")
+  }
+     
+  if(anova.out["trait_M5_Openess:mediatype","Pr(>F)"] <.05){
+    stat.out3 <- paste0(stat.out3," there was a significant interaction of Openness x MediaType (",ft("trait_M5_Openess:mediatype",") "),"such that ",dv," scores changed by ",r(i_ope[i_ope$mediatype=="Games", 2],3)," for each point increase in Openness for interactive media, and ",dv," scores changed by ",r(i_ope[i_ope$mediatype=="Movies", 2],3)," for each point increase in Openness for non-interactive media.")
+  }
+  
+  stat.out3  <-  str_replace_all(stat.out3,c("changed by -" = "decreased by -",
+                                             "changed by " = "increased by "))
+  cat("\n\n")
+  #cat(stat.out3) 
+  
+  
+  #GENERATE COVARIATE PLOTS
+  if (any(anova.out["trait_TAS_Total","Pr(>F)"] <.05, anova.out["trait_TAS_Total:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_TAS_Total",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  if (any(anova.out["trait_M5_Extraversion","Pr(>F)"] <.05, anova.out["trait_M5_Extraversion:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_M5_Extraversion",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  if (any(anova.out["trait_M5_Agreeableness","Pr(>F)"] <.05, anova.out["trait_M5_Agreeableness:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_M5_Agreeableness",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  if (any(anova.out["trait_M5_Conscientiousness","Pr(>F)"] <.05, anova.out["trait_M5_Conscientiousness:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_M5_Conscientiousness",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  if (any(anova.out["trait_M5_Neuroticism","Pr(>F)"] <.05, anova.out["trait_M5_Neuroticism:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_M5_Neuroticism",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  if (any(anova.out["trait_M5_Openess","Pr(>F)"] <.05, anova.out["trait_M5_Openess:mediatype","Pr(>F)"] <.05)) {
+    row2[[length(row2)+1]] <- cov_plot("trait_M5_Openess",dv,anova_model,ymin=ymin,ymax=ymax)
+  }
+  
+  
+  # REPORT CONFOUND TESTS (IF PRESENT)
+  stat.out4<-NULL
+  
+  if("order" %in% rownames(anova.out)){ #only run the following code when order is in the model
+
+    if(anova.out["order:mediatype","Pr(>F)"] >.05){
+      stat.out4 <- paste0("In this full model with all covariates, there was no significant efect of Order, (",ft("order",")"),", or Order x MediaType interaction, (",ft("order:mediatype",")."))
+    }
+    
+    if(anova.out["order","Pr(>F)"] <.05){
+      
+      order_em <- emmeans(anova_model,c("order")) # estimates for order
+      order_df <- as.data.frame(order_em) # dataframe with estimates
+      order_t <- as.data.frame(pairs(order_em))
+      print(order_em)
+      print(order_t)
+      stat.out4 <- paste0("There was a main effect of Order (",ft("order","), "),"such that ",dv," scores were slightly higher when participants answered questions about non-interactive media first(",r(order_df[order_df$order=="Non-Int First","emmean"]),"), compared to when participants answered questions about interactive media first (",r(order_df[order_df$order=="Int First","emmean"]),", t = ",r(order_t[["t.ratio"]],3)," p ",pv2(order_t[["p.value"]]),"). ")
+      #plot(afex_plot(anova_model,"order"))
+    }
+    
+    if(anova.out["order:mediatype","Pr(>F)"] <.05){
+      orderxmt_em <- emmeans(anova_model,c("mediatype","order")) # calculate emmeans for mediatype x order. 
+      orderxmt_df <- as.data.frame(pairs(orderxmt_em)[c(1,6),]) # convert emmeans object to dataframe. Used for mean estimates. #Only look at matching orders.
+      ctrst = list(MT.by.Order=c(1,-1,-1,1)) # Setup contrasts to show difference between levels of mediatype for different orders.
+      orderxmt_t <- as.data.frame(contrast(orderxmt_em, ctrst)) # generate dataframe with contrast results (used for final t-test).
+      print(orderxmt_df)
+      print(orderxmt_t)
+      ifelse(abs(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"]) > abs(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"]),
+             stat.out4 <- paste0(stat.out4,"Finally, there was an Order x MediaType interaction (",ft("order:mediatype","), "),"such that the difference in ",dv," scores between interactive and non-interactive media was more pronounced when participants answered questions about non-interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"],3),"), compared to when they answered questions about interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"],3),"; t = ",r(orderxmt_t[["t.ratio"]],3)," p ",pv2(orderxmt_t[["p.value"]]),")."),
+             stat.out4 <- paste0(stat.out4,"Finally, there was an Order x MediaType interaction (",ft("order:mediatype","), "),"such that the difference in ",dv," scores between interactive and non-interactive media was more pronounced when participants answered questions about interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"],3),"), compared to when they answered questions about non-interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"],3),"; t = ",r(orderxmt_t[["t.ratio"]],3)," p ",pv2(orderxmt_t[["p.value"]]),")."))
+      row1[[2]] <- afex_plot(anova_model,x="mediatype",trace="order",mapping=c("shape","color","fill"),legend_title="Order",
+      data_arg = list(size=2),
+      point_arg = list(size = 2.5,color="black"),
+      error_arg = list(size = .7, width = 0.2,color="black"),
+      #line_arg = list(color=NULL),
+      factor_levels = list(mediatype = c("Interactive", "Non-Interactive"))) +
+    scale_color_brewer(palette = "Accent",aesthetics = c("colour", "fill"),guide="legend")+
+    scale_shape_manual(values = c(21, 24))+
+    ylim(ymin,ymax)+
+    ylab(title)+
+    xlab("Media Type")+
+    theme(legend.position="right",
+          legend.title = element_text(size = 7), 
+          legend.text = element_text(size = 6),
+          legend.title.align=0.5,
+          legend.margin=margin(c(0,0,0,-25)))
+    }
+  }
+  
+  cat("\n\n")
+  #cat(stat.out4)
+
+  cat(paste(stat.out,stat.out2,stat.out3,stat.out4,sep="\n\n"))
+  
+  
+  #plot(cowplot::plot_grid(plotlist = plotlist))
+  ifelse(length(row1)==1,
+         top_row <- plot_grid(row1[[1]],NULL,labels=c("A"," "),nrow=1),
+         top_row <- plot_grid(plotlist=row1,labels=LETTERS[1:length(row1)],nrow=1))
+  bottom_row <- plot_grid(plotlist=row2, labels = LETTERS[(length(row1)+1):(length(row1)+length(row2))], label_size = 12,nrow=1,hjust=0,vjust=1.2)
+  plot(plot_grid(top_row, bottom_row, legend,nrow = 3,rel_heights = c(1.5,1,.2)))
+  ggsave(filename=paste0(dv,".png"), device = "png", 
+       path="output/",
+         width = 19, units = "cm", 
+       dpi = 600)
+
+
+  #create a filtered output table with only the effect size, significance, and key variables
+  anova.filtered <- anova.out %>% mutate(testname=row.names(anova.out)) %>% 
+    select(testname,F, pes, p="Pr(>F)") %>% 
+    filter(testname %in% c("mediatype",paste(traits,"mediatype",sep=":"),traits))
+  #format p values nicely
+  anova.filtered$p <- pv(anova.filtered$p) 
+  #create a column showing significance indicators
+  anova.filtered$sig <- ifelse(anova.filtered$p>=.05,"",ifelse(anova.filtered$p<.01,ifelse(anova.filtered$p<.001,"***","**"),"*"))
+  #create a column with the effect size and sig indicators together
+  anova.filtered$siges <- paste0(pv(anova.filtered$pes),anova.filtered$sig)
+  #create a column with effect size and significance in full text
+  anova.filtered$full <- paste("es ",pv2(anova.filtered$pes),", p = ",anova.filtered$p)
+  anova.filtered$full <- gsub("= <","<",anova.filtered$full)
+  
+  #create a dataframe summarising the effect size for each measure
+  #es.sum <- cbind(dv,as.data.frame(t(anova.filtered$full))) #use this line for full es, p
+  es.sum <- cbind(dv,as.data.frame(t(anova.filtered$siges))) #use this line for es with sig marker
+  names(es.sum) <- c("dv",anova.filtered$testname)
+  #reorder effect size summary table
+  es.sum <- select(es.sum,"dv","mediatype",contains("_TAS"),contains("_Extraversion"),contains("_Agreeableness"),contains("_Conscientiousness"),contains("_Neuroticism"),contains("_Openess"),everything())
+  #es.sum <- select(es.sum,"dv","mediatype",contains(":"),everything())
+  #format col names
+  names(es.sum) <- gsub("mediatype","MediaType",names(es.sum))
+  names(es.sum) <- gsub("trait_","",names(es.sum))
+  names(es.sum) <- gsub(":"," x ",names(es.sum))
+  return(es.sum)
+}
+```
+
+### Flow
+```{r message=FALSE, warning=FALSE}
+ancovatable <- runancova("DFS",c("order","dataset"),title="Flow")
+```
+
+
+### Sense of Agency
+```{r message=FALSE, warning=FALSE}
+ancovatable <- rbind(ancovatable,runancova("SOARS_Involuntariness",c("order"),ymin=5,ymax=35,title="Involuntariness"))
+ancovatable <- rbind(ancovatable,runancova("SOARS_Effortlessness",c("order"),ymin=5,ymax=35,title="Effortlessness"))
+```
+
+### Presence
+```{r message=FALSE, warning=FALSE}
+ancovatable <- rbind(ancovatable,runancova("ITC_SpatialPresence",title="Spatial Presence"))
+ancovatable <- rbind(ancovatable,runancova("ITC_Engagement",c("order"),title="Engagement"))
+ancovatable <- rbind(ancovatable,runancova("ITC_EcologicalValidity",c("order"),title="Ecological Validity"))
+ancovatable <- rbind(ancovatable,runancova("ITC_NegativeEffects",title="Negative Effects"))
+```
+
+### Character Involvement
+```{r message=FALSE, warning=FALSE}
+ancovatable <- rbind(ancovatable,runancova("CharIdentification",ymax=7,title="Character Involvement"))
+
+```
+### Time
+```{r message=FALSE, warning=FALSE}
+ancovatable <- rbind(ancovatable,runancova("TIME",title="Time Perception"))
+```
+### Summary of effect sizes
+```{r message=FALSE, warning=FALSE}
+#HEATMAP OF ANCOVATABLE
+
+# This Cambridge University website cites the rules of thumb of Cohen (1988) for η2
+# as being
+# 0.01 = small effect
+# 0.06 = medium effect
+# 0.14 = large effect
+
+heatmap_data <- as.data.frame(lapply(ancovatable, function(x) {gsub("[^0-9.-]", "", x)})) #remove all characters from dataframe (gets rid of sig *s)
+heatmap_data <- cbind(ancovatable[,1],heatmap_data[,-1]) # replace dv names that were just lost
+#names(heatmap_data)<-c("dv","MT","TAS","TAS.i","Ext","Ext.i","
+names(heatmap_data)  <-  str_replace_all(names(heatmap_data),c("x.MediaType" = "xMT",
+                                                             "_Total" = "", 
+                                                             "M5_Extraversion" = "EXT",
+                                                             "M5_Agreeableness"="AGR",
+                                                             "M5_Conscientiousness"="CON",
+                                                             "M5_Neuroticism"="NEU",
+                                                             "M5_Openess"="OPN"))
+heat_long <- gather(heatmap_data, "measure", "ES",2:length(heatmap_data), factor_key=TRUE) # transform to long format
+lab<-gather(ancovatable, "measure", "ES",2:length(ancovatable), factor_key=TRUE) #similar long format with sig labels
+heat_long$ES<-as.numeric(heat_long$ES)
+names(heat_long) <- c("dv","measure","ES")
+
+#reorder factors
+
+
+heat_long$dv <- factor(heat_long$dv,levels=rev(allscales))
+
+heat_long$dv <- revalue(heat_long$dv, c("DFS" = "Flow",
+                                                 "SOARS_Involuntariness" = "Involuntariness",
+                                                 "SOARS_Effortlessness" = "Effortlessness",
+                                                 "ITC_SpatialPresence" = "Spatial Presence",
+                                                 "ITC_Engagement" = "Engagement",
+                                                 "ITC_EcologicalValidity"="Ecological Validity",
+                                                 "ITC_NegativeEffects"="Negative Effects",
+                                                 "CharIdentification"="Character Involvement",
+                                                 "TIME"="Time Perception"))
+
+heat_long$ES.f <- cut(heat_long$ES,breaks = c(0, 0.01, 0.06, 0.14, max(heat_long$ES)),
+                      labels = c("[0, .01]", "[.01, .06]", "[.06, .14]", "[.14, .34]"), 
+                      include.lowest = T)
+
+
+
+
+
+weight <- .7
+plot(ggplot(heat_long, aes(x = measure, dv)) +
+  geom_tile(aes(fill = ES.f),color="black",size=.2) +
+  geom_text(aes(label = lab$ES),size=3)+
+  geom_rect(data=heat_long, mapping=aes(xmin=.5, xmax=1.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=1.5, xmax=3.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=3.5, xmax=5.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=5.5, xmax=7.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=7.5, xmax=9.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=9.5, xmax=11.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+    geom_rect(data=heat_long, mapping=aes(xmin=11.5, xmax=13.5, ymin=0.5, ymax=9.5), size=weight,color="black", alpha=0.0)+
+  theme(text = element_text(size=11))+
+  scale_fill_manual(values = c("white",RColorBrewer::brewer.pal(3, "Blues")))+
+  scale_x_discrete(position = "top")+
+  theme(legend.position="bottom")+ labs(fill = "Effect Size") +ylab("")+xlab("")+
+  theme(axis.line=element_blank())+
+  theme(axis.text.x = element_text(size=10,angle = 90,hjust=-.01)))
+
+  ggsave(filename="heatmap.png", device = "png", 
+       path="output/",
+         width = 25, units = "cm", 
+       dpi = 600)
+```
