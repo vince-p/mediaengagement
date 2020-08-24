@@ -652,7 +652,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
          top_row <- plot_grid(plotlist=row1,labels=LETTERS[1:length(row1)],nrow=1))
   bottom_row <- plot_grid(plotlist=row2, labels = LETTERS[(length(row1)+1):(length(row1)+length(row2))], label_size = 12,nrow=1,hjust=0,vjust=1.2)
   plot(plot_grid(top_row, bottom_row, legend,nrow = 3,rel_heights = c(1.5,1,.2)))
-  ggsave(filename=paste0(dv,".png"), device = "png", 
+  ggsave(filename=paste0("Fig",nrow(ancovatable)+1,".tif"), device = "tiff", 
        path="output/",
          width = 19, units = "cm", 
        dpi = 600)
@@ -689,6 +689,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
 
 ### Flow
 ```{r message=FALSE, warning=FALSE}
+ancovatable<-data.frame(integer(0)) #sets df with 0 rows so figure filename indexing works
 ancovatable <- runancova("DFS",c("order","dataset"),title="Flow")
 ```
 
@@ -782,7 +783,7 @@ plot(ggplot(heat_long, aes(x = measure, dv)) +
   theme(axis.line=element_blank())+
   theme(axis.text.x = element_text(size=10,angle = 90,hjust=-.01)))
 
-  ggsave(filename="heatmap.png", device = "png", 
+  ggsave(filename=paste0("Fig",nrow(ancovatable)+1,".tif"), device = "tiff",
        path="output/",
          width = 25, units = "cm", 
        dpi = 600)
