@@ -2,16 +2,21 @@
 title: "SelfRepMedia"
 author: "Vince Polito"
 date: "9/07/2020"
-output: html_notebook
-#output: html_notebook # Notebook format
+output:
+  html_notebook: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
+#put this in header
+#output: html_notebook
+
+
 knitr::opts_chunk$set(echo = FALSE)
 
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-p_load(scales,dplyr,readr,psych,tidyr,knitr,userfriendlyscience,afex,flextable,officer,emmeans,ggplot2,ggpubr,cowplot,stringr,plyr)
+p_load(scales,dplyr,readr,psych,tidyr,knitr,userfriendlyscience,afex,flextable,officer,emmeans,ggplot2,ggpubr,cowplot,stringr,plyr,summarytools)
 p_load_current_gh("vince-p/vtools")
 
 ##############
@@ -80,6 +85,7 @@ calldata <- alldata[alldata$ResponseId %in% ctotals$id,]
 
 ```{r habit_stats}
 genres <- read.csv("cleandata/genres.csv")
+#generate seperate tables of genres for each condition
 gamegenres <- table(genres$GameGenre) %>% 
         as.data.frame() %>% 
         arrange(desc(Freq))
@@ -122,7 +128,6 @@ We first checked for outliers on all measures. Outliers were defined as any scor
 ```{r descriptives, echo=FALSE, message=FALSE, warning=FALSE}
 ################################################################
 # CHECK DESCRIPTIVES)
-p_load(summarytools)
 kable(rbind(summarytools::descr(select(ctotals,starts_with("trait")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE),
           summarytools::descr(select(ctotals,starts_with("Games")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE),
           summarytools::descr(select(ctotals,starts_with("Movies")), stats=c("mean","min","max","skewness","kurtosis"),transpose=TRUE)),
@@ -131,12 +136,12 @@ kable(rbind(summarytools::descr(select(ctotals,starts_with("trait")), stats=c("m
 
 ```
 ## Reliability
-```{r ReliabilityCalculation, echo=FALSE, warning=FALSE}
+```{r ReliabilityCalculation, echo=FALSE, warning=FALSE, cache=TRUE}
 ################################################################
 # NEXT REPORT RELIABILITIES
 
 # This function populates a table of reliability metrics from s, which is the output of the scalereliability
-# runction. S needs to be run on properly reverse coded data. This data is organised in the seperate
+# runction. S needs to be run on properly reverse coded data. This data is organised in the separate
 # calc.rel function.
 rtable <- function(varname,s,i){
   data.frame(measure=varname, 
@@ -255,7 +260,7 @@ kable(rel2, caption ="Table S2 - McDonald's Omega and Cronbach's Alpha reliabili
 ## Testing for confounds
 
 
-```{r prelim_tests, echo=FALSE, message=FALSE, warning=FALSE}
+```{r prelim_tests, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 
 # RESHAPE LONGER
 # Could not work out how to do this in a single step
@@ -344,7 +349,7 @@ describeBy(wider[allscales], group=wider$mediatype)
 
 
 
-```{r echo=FALSE, warning=FALSE}
+```{r echo=FALSE}
 
 levels(wider$order)[levels(wider$order)=="GamesFirst"] <- "Int.First"
 levels(wider$order)[levels(wider$order)=="MoviesFirst"] <- "Non-Int First"
@@ -363,13 +368,6 @@ traits <- names(select(wider,starts_with("trait_")))
 #SET THEME PARAMETERS
 theme_set(
   theme_pubr()  #axes
-  #scale_x_continuous(breaks=seq(min,max),limits=c(min, max))+
-  #coord_fixed(ratio=1)+ #ration of y-axis to x-axis
-  #theme_minimal(base_size = 15)+ # no axes
-  #theme_pubr(base_size = 15)+ #axes
-  #theme(legend.position="bottom")
-  #theme(legend.position="none") #+
-  #theme(axis.title=element_text(size=20))
 )
 
 #create dummy plot (used only for the legend)
@@ -443,9 +441,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
   anova.out <- anova_model$anova_table
   
   print(nice(anova_model,sig_symbols = ""))
-  
-  
-  
+
   # MAIN EFFECT OF MEDIA TYPE
   em_mediatype <- confint(emmeans(anova_model,"mediatype"))
   
@@ -456,7 +452,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
     stat.out <- paste0("There was no main effect of MediaType for ",dv,", ",ft("mediatype","."))
   } else {
     # if sig dif, then report means and SDs  
-    x<-as.data.frame(unlist(stby(wider[dv],wider$mediatype,descr, stats=c("Mean","sd"),transpose=TRUE)))
+    x<-as.data.frame(unlist(summarytools::stby(wider[dv],wider$mediatype,descr, stats=c("Mean","sd"),transpose=TRUE)))
       ifelse(x["Games.Mean",1]>x["Movies.Mean",1],
              # stats if games > movies
              stat.out <- paste0(dv," was higher for interactive media (M = ",r(x["Games.Mean",1]),", SD = ",r(x["Games.Std.Dev",1]),
@@ -473,10 +469,9 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
 
       
   }
-  #cat(stat.out)
-        
-  #generate plot (always show this plot)
-  ifelse(dv=="TIME",
+
+  #generate mediatype plot (always show this plot)
+  ifelse(dv=="TIME", #slightly different plot time for time.
          row1[[1]] <- afex_plot(anova_model,x="mediatype",error="within",mapping=c("color"),legend_title="MediaType",
             data_geom = ggplot2::geom_jitter,
             data_arg = list(width = 0.15),
@@ -536,11 +531,6 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
   stat.out2  <-  str_replace_all(stat.out2,c("changed by -" = "decreased by -",
                                              "changed by " = "increased by "))
   
-  cat("\n\n")
-  #cat(stat.out2)
-  
-  
-  
   #REPORT INTERACTIONS
   
   # calculate the slope of each covariate x mediatype interaction
@@ -553,6 +543,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
   
   stat.out3 <- "In addition, several traits interacted with MediaType:"
   
+  # Generate text for any interactions
   if(anova.out["trait_TAS_Total:mediatype","Pr(>F)"] <.05){
     stat.out3 <- paste0(stat.out3," there was a significant interaction of Absorption x MediaType (",ft("trait_TAS_Total:mediatype",") "),"such that ",dv," scores changed by ",r(i_tas[i_tas$mediatype=="Games", 2],3)," for each point increase in Absorption for interactive media, and ",dv," scores changed by ",r(i_tas[i_tas$mediatype=="Movies", 2],3)," for each point increase in Absorption for non-interactive media;")
   }
@@ -579,10 +570,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
   
   stat.out3  <-  str_replace_all(stat.out3,c("changed by -" = "decreased by -",
                                              "changed by " = "increased by "))
-  cat("\n\n")
-  #cat(stat.out3) 
-  
-  
+
   #GENERATE COVARIATE PLOTS
   if (any(anova.out["trait_TAS_Total","Pr(>F)"] <.05, anova.out["trait_TAS_Total:mediatype","Pr(>F)"] <.05)) {
     row2[[length(row2)+1]] <- cov_plot("trait_TAS_Total",dv,anova_model,ymin=ymin,ymax=ymax)
@@ -634,6 +622,7 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
       ifelse(abs(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"]) > abs(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"]),
              stat.out4 <- paste0(stat.out4,"Finally, there was an Order x MediaType interaction (",ft("order:mediatype","), "),"such that the difference in ",dv," scores between interactive and non-interactive media was more pronounced when participants answered questions about non-interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"],3),"), compared to when they answered questions about interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"],3),"; t = ",r(orderxmt_t[["t.ratio"]],3)," p ",pv2(orderxmt_t[["p.value"]]),")."),
              stat.out4 <- paste0(stat.out4,"Finally, there was an Order x MediaType interaction (",ft("order:mediatype","), "),"such that the difference in ",dv," scores between interactive and non-interactive media was more pronounced when participants answered questions about interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="Games Int.First - Movies Int.First","estimate"],3),"), compared to when they answered questions about non-interactive media first (",r(orderxmt_df[orderxmt_df$contrast=="(Games Non-Int First) - (Movies Non-Int First)","estimate"],3),"; t = ",r(orderxmt_t[["t.ratio"]],3)," p ",pv2(orderxmt_t[["p.value"]]),")."))
+      #generate order plot if required
       row1[[2]] <- afex_plot(anova_model,x="mediatype",trace="order",mapping=c("shape","color","fill"),legend_title="Order",
       data_arg = list(size=2),
       point_arg = list(size = 2.5,color="black"),
@@ -653,12 +642,10 @@ runancova <- function(dv,confounds=NULL,title,ymin=1,ymax=5) {
     }
   }
   
-  cat("\n\n")
-  #cat(stat.out4)
-
+  # print all stat result output
   cat(paste(stat.out,stat.out2,stat.out3,stat.out4,sep="\n\n"))
-  
-  
+
+  #combined plot
   #plot(cowplot::plot_grid(plotlist = plotlist))
   ifelse(length(row1)==1,
          top_row <- plot_grid(row1[[1]],NULL,labels=c("A"," "),nrow=1),
